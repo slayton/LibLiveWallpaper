@@ -13,7 +13,7 @@ import android.os.SystemClock;
 
 public class Sprite extends UIPoint {
 	
-	protected Rect bounds;
+	protected Rect arenaBounds;
 	public int state;
 	//Resources r;
 	
@@ -32,16 +32,26 @@ public class Sprite extends UIPoint {
 	
 	
 	protected int dir=-1;
-	protected int vel = 4;
+	protected int vel = 3;
 	protected int dx = 0;
 	protected int dy = 0;
 	
 	protected Bitmap image;
 	protected Matrix m;
 	protected long tLastMove =0 ;
+
 	protected ArrayList<TurningPoint> tp;
-	protected ArrayList<Sprite> targets;	
+	protected int tpSize;
+	protected TurningPoint tpMove = null;
+
+	protected ArrayList<Sprite> targets;
+	protected int nTargets;
+	protected Sprite tempTarget;
+	
 	protected ArrayList<Bitmap> imageArray;
+	protected int nImageArray;
+	protected Rect imageBounds;
+	
 	protected Bitmap drawMe;
 	protected int imgIdx;
 	
@@ -60,7 +70,7 @@ public class Sprite extends UIPoint {
 
 		//WPUtil.logD("imageList is null:" + Boolean.toString(imageList==null));
 		this.state = Sprite.MOVING_UP;
-		this.bounds = arenaBounds;
+		this.arenaBounds = arenaBounds;
 		this.imageArray = imageList;
 
 		//WPUtil.logD("Actor Created at:".concat(Integer.toString(x)).concat("x").concat(Integer.toString(y)));
@@ -72,12 +82,14 @@ public class Sprite extends UIPoint {
         rand = new Random();
         imgIdx = 0;
 		this.image = imageArray.get(imgIdx);
+		this.nImageArray = imageArray.size();
 
 	}
 	public Sprite(int x, int y, Rect arenaBounds, ArrayList<Bitmap> imageList, ArrayList<Sprite> targets)
 	{
 		this(x, y, arenaBounds, imageList);
 		this.targets = targets;
+		this.nTargets = targets.size();
 	}
 	public void setAiType(int i)
 	{
@@ -105,34 +117,34 @@ public class Sprite extends UIPoint {
 	public void setTurningPoints(ArrayList<TurningPoint> tp)
 	{
 		this.tp = tp;
+		this.tpSize = tp.size();
 	}
 	
 	public void draw(final Canvas c, final Paint mPaint)
 	{	
-		this.move();
+		//this.move();
 		drawMe = Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), m, true);
 		c.drawBitmap(drawMe, this.x-image.getWidth()/2, this.y-image.getHeight()/2, mPaint);
-		//c.drawBitmap(image, m, mPaint);
 	}
 	
 	// This is the core of the movement, replace this with the AI as needed
-	protected void move()
+	public void move()
 	{
-		long t = SystemClock.elapsedRealtime();
-		long dt = t-tLastMove;
-		//if (dt<Actor.MIN_ELAPSED_TIME)
-		//	return;
-		tLastMove = t;
-		//WPUtil.logD(Boolean.toString(tp==null) + " tp is null");
-		for (int i=0; i<tp.size(); i++)
-         	if (this.detectCollision(tp.get(i)))
-         		this.turnAtPoint(tp.get(i));
-     
+		int tpSize = tp.size();
+		for (int i=0; i<tpSize; i++)
+		{
+			tpMove = tp.get(i);
+         	if (this.detectCollision(tpMove))
+         		this.turnAtPoint(tpMove);
+		}
 		this.x += dx;
 		this.y += dy;
 		turnTimeOut -=1;
 	}
 	
+	public void setEnabled(boolean newVal){
+		this.enabled = newVal;
+	}
 	
 	public boolean detectCollision(Point target)
 	{
@@ -140,7 +152,7 @@ public class Sprite extends UIPoint {
 	}
 	public boolean detectCollision(Point target, int dist)
 	{
-		return (Math.abs(this.x - target.x)<=Math.abs(dist) && Math.abs(this.y - target.y)<=Math.abs(dist));
+		return (Math.abs(this.x - target.x)<=dist && Math.abs(this.y - target.y)<=dist);
 	}
 	public boolean detectLinearCollision(Point target, int dist)
 	{
@@ -203,7 +215,7 @@ public class Sprite extends UIPoint {
 	protected void huntTurn(TurningPoint tp){
 
 		//WPUtil.logD("hunting");
-		if (rand.nextInt(100)<2)
+		if (rand.nextInt(100)<10)
 		{
 			randomTurn(tp);
 			return;
@@ -252,7 +264,7 @@ public class Sprite extends UIPoint {
 	}
 	protected void avoidTurn(TurningPoint tp){
 		
-		if (rand.nextInt(100)<1){
+		if (rand.nextInt(100)<25){
 			randomTurn(tp);
 			return;
 		}
@@ -260,9 +272,10 @@ public class Sprite extends UIPoint {
 		int tIdx = 0;
 		int minDist = Integer.MAX_VALUE;
 		int dist;
-		for (int i=0; i<targets.size(); i++)
+		for (int i=0; i<nTargets; i++)
 		{
-			dist = (int)UIPoint.distance(this, targets.get(i));
+			tempTarget = targets.get(i);
+			dist = (int)UIPoint.distance(this, tempTarget);
 			if (dist<minDist){
 				minDist = dist;
 				tIdx = i;
@@ -297,8 +310,8 @@ public class Sprite extends UIPoint {
 		
 	}
 	public void turnUp(){
-		if (this.dir==Sprite.MOVING_DOWN)
-			WPUtil.logD("TAG:" + Integer.toString(tag) + " Turning around: UP");
+	//	if (this.dir==Sprite.MOVING_DOWN)
+	//		WPUtil.logD("TAG:" + Integer.toString(tag) + " Turning around: UP");
 		dx = 0;
 		dy = - vel;
 		m.reset();
@@ -307,8 +320,8 @@ public class Sprite extends UIPoint {
 		turnTimeOut = TURN_TIMEOUT;
 	}
 	public void turnDown(){
-		if (this.dir==Sprite.MOVING_UP)
-			WPUtil.logD("TAG:" + Integer.toString(tag) + " Turning around: DOWN");
+	//	if (this.dir==Sprite.MOVING_UP)
+	//		WPUtil.logD("TAG:" + Integer.toString(tag) + " Turning around: DOWN");
 		dx = 0;
 		dy = vel;
 		m.reset();
@@ -318,8 +331,8 @@ public class Sprite extends UIPoint {
 
 	}
 	public void turnLeft(){
-		if (this.dir==Sprite.MOVING_RIGHT)
-			WPUtil.logD("TAG:" + Integer.toString(tag) + " Turning around: LEFT");
+	//	if (this.dir==Sprite.MOVING_RIGHT)
+	//		WPUtil.logD("TAG:" + Integer.toString(tag) + " Turning around: LEFT");
 		dx = -vel;
 		dy = 0;
 		m.reset();
@@ -329,8 +342,8 @@ public class Sprite extends UIPoint {
 
 	}
 	public void turnRight(){
-		if (this.dir==Sprite.MOVING_LEFT)
-			WPUtil.logD("TAG:" + Integer.toString(tag) + " Turning around: RIGHT");
+		//if (this.dir==Sprite.MOVING_LEFT)
+			//WPUtil.logD("TAG:" + Integer.toString(tag) + " Turning around: RIGHT");
 		dx = vel;
 		dy = 0;
 		m.reset();
@@ -341,9 +354,10 @@ public class Sprite extends UIPoint {
 		return dir;
 	}
 	public void setDir(int dir){
+		//WPUtil.logD("sprit.setDir() called");
 		switch (dir){
 		case(Sprite.MOVING_DOWN):
-				turnDown();break;
+			turnDown();break;
 		case(Sprite.MOVING_UP):
 			turnUp();break;
 		case(Sprite.MOVING_LEFT):
