@@ -12,7 +12,6 @@ import android.graphics.Rect;
 import android.os.SystemClock;
 
 public class Sprite extends UIPoint {
-	
 	protected Rect arenaBounds;
 	public int state;
 	//Resources r;
