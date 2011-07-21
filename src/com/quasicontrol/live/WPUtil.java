@@ -250,15 +250,6 @@ public class WPUtil {
 		return new Rect(in.bottom, in.left, in.top, in.right);
 	}*/
 	
-	public static String getThemeDisplayName(String theme){
-		if (theme.equalsIgnoreCase("com.quasicontrol.pacdroidlive"))
-			return "PacDroid Theme";
-		if (theme.equalsIgnoreCase("com.quasicontrol.pacdroidlive.classic"))
-			return "Classic Pac Theme";
-		if (theme.equalsIgnoreCase("com.quasicontrol.pacdroidlive.elfhunter"))
-			return "Legend of Zelda Theme";
-		else
-			return "Unknown Theme";
-	}
+	
 }
 

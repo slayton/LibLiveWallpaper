@@ -30,7 +30,7 @@ public class Sprite extends UIPoint {
 	public static final int AI_AVOID = 2;
 	
 	
-	protected int dir=-1;
+	protected int dir=0;
 	protected int vel = 3;
 	protected int dx = 0;
 	protected int dy = 0;
@@ -179,6 +179,21 @@ public class Sprite extends UIPoint {
 		this.y = tp.y + (int) Math.signum(dy);
 		
 	}
+	public void turnAtPoint(TurningPoint tp, int dir)
+	{	
+		switch (dir){
+		case(Sprite.MOVING_UP): 	this.turnUp();		break;
+		case(Sprite.MOVING_DOWN):	this.turnDown(); 	break;
+		case(Sprite.MOVING_LEFT):	this.turnLeft(); 	break;
+		case(Sprite.MOVING_RIGHT):	this.turnRight();	break;
+		default:					this.turnAtPoint(tp); return;
+		}
+		
+		this.x = tp.x + (int) Math.signum(dx);
+		this.y = tp.y + (int) Math.signum(dy);
+		
+	}
+	
 	protected void randomTurn(TurningPoint tp){
 	//	WPUtil.logD("init random turn");
 		if (turnTimeOut>=1)
@@ -365,5 +380,7 @@ public class Sprite extends UIPoint {
 			turnRight();break;
 		}
 	}
+	
+	
 	
 }
